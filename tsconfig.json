@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./", // enables absolute path imports
+    "outDir": "build/dist", // target for compiled files
+    "module": "es2015", // "es2015" for tree-shaking
+    "target": "es2015", // "es2015" for ES6+ engines
+    "lib": ["ES2015", "dom"],
+    "sourceMap": true, // include js files
+    "allowJs": true, // include js files
+    "jsx": "react", // process JSX
+    "moduleResolution": "node",
+    "rootDir": "src",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "paths": { // define absolute path mappings
+      "@app/*": ["src/*"] // will enable -> import { ... } from '@app/components'. !!! if you change this, change alias in webpack.config also
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "build",
+    "scripts",
+    "acceptance-tests",
+    "webpack",
+    "jest",
+    "src/setupTests.ts",
+    "config"
+  ]
+}
