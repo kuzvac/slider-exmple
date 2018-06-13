@@ -1,8 +1,8 @@
-import { takeLatest, call, put } from "redux-saga/effects";
+import { takeLatest, /*takeEvery, */call, put } from "redux-saga/effects";
 import { getType } from "typesafe-actions";
 import { inputsActions } from "./actions";
 import fakeApi from "../../services/fakeApi/index.js";
-import {IChangeValue, IfetchServerSuccess} from "@app/containers/Inputs/actions";
+import {IChangeValue, IfetchServerRequest, IfetchServerSuccess} from "@app/containers/Inputs/actions";
 
 interface Iresponse {
   body: {
@@ -18,29 +18,48 @@ interface ISetInputValue {
   payload: IChangeValue;
 }
 
+interface IGetInputs {
+  type: string;
+  payload: IfetchServerRequest;
+}
+
 interface IPercents {
   summ: number;
   numbers: any[];
 }
 
+function compareNumbers(a: any, b: any) {
+  return a - b;
+}
+
 function* greatherOrLessMax(percentsArray: IPercents, itemsArray: IfetchServerSuccess[]) {
-  const resultItems: IfetchServerSuccess[] = Object.assign([], itemsArray, [
-    ...itemsArray,
-  ]);
-  if (percentsArray.summ > 100) {
-    const maxIndex = percentsArray.numbers.indexOf(Math.max(...percentsArray.numbers));
-    const diff = percentsArray.summ - 100;
-    const resultPercents = +(resultItems[maxIndex].Percent - diff).toFixed(2);
-    resultItems[maxIndex] = Object.assign({}, resultItems[maxIndex], {
-      ...resultItems[maxIndex],
-      Percent: resultPercents < 0 ? 0 : resultPercents,
-    });
+  const resultItems: IfetchServerSuccess[] = Object.assign([], itemsArray);
+  const resultPercentsArray: IPercents = Object.assign({}, percentsArray);
+  if (resultPercentsArray.summ > 100) {
+    for (; resultPercentsArray.summ !== 100;) {
+      const maxIndex = resultPercentsArray.numbers.indexOf(Math.max(...resultPercentsArray.numbers));
+      const diff = resultPercentsArray.summ - 100;
+      const rawPercents = +(resultItems[maxIndex].Percent - diff).toFixed(2);
+      const resultPercents = rawPercents < 0 ? 0 : rawPercents;
+      resultItems[maxIndex] = Object.assign({}, resultItems[maxIndex], {
+        ...resultItems[maxIndex],
+        Percent: resultPercents,
+      });
+
+      if (rawPercents < 0) {
+        resultPercentsArray.summ = resultPercentsArray.summ - resultPercentsArray.numbers[maxIndex];
+      } else {
+        resultPercentsArray.summ = resultPercentsArray.summ - diff;
+      }
+      resultPercentsArray.numbers[maxIndex] = resultPercents;
+    }
   }
 
-  if (percentsArray.summ < 100) {
-    const diff = 100 - percentsArray.summ;
-    const sortNumbers = Object.assign([], percentsArray.numbers);
-    const minIndex = percentsArray.numbers.indexOf(sortNumbers.sort()[1]);
+  if (resultPercentsArray.summ < 100) {
+    const diff = 100 - resultPercentsArray.summ;
+    const sortNumbers = Object.assign([], resultPercentsArray.numbers).sort(compareNumbers);
+    const minNumber = sortNumbers[0] === "" ? sortNumbers[1] : sortNumbers[0];
+    const minIndex = resultPercentsArray.numbers.indexOf(minNumber);
     resultItems[minIndex] = Object.assign({}, resultItems[minIndex], {
       ...resultItems[minIndex],
       Percent: +(resultItems[minIndex].Percent + diff).toFixed(2),
@@ -50,10 +69,9 @@ function* greatherOrLessMax(percentsArray: IPercents, itemsArray: IfetchServerSu
   return resultItems;
 }
 
-function* getInputs() {
+function* getInputs({payload}: IGetInputs) {
   try {
-    // const token: Itoken = yield call(api.getToken, email, password);
-    const response: Iresponse = yield call(fakeApi.getData);
+    const response: Iresponse = yield call(fakeApi.getData, payload.count);
     if (response.err) {
       throw response.err.message;
     }

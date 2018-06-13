@@ -6,9 +6,9 @@ import { authSuccess} from './testData'
 const TIMEOUT = 500;
 
 export default {
-  getData: () => {
+  getData: (count) => {
     return new Promise( (resolve, reject) => {
-      setTimeout(() => resolve(authSuccess), TIMEOUT)
+      setTimeout(() => resolve(authSuccess(count)), TIMEOUT)
     })
   }
 }

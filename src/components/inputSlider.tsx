@@ -14,7 +14,7 @@ export const InputSlider: React.StatelessComponent<IInputNumber> = ({value, hand
     }
 
     handleChange({
-      value: event.currentTarget.value,
+      value: parseFloat(event.currentTarget.value),
       index,
     });
   };

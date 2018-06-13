@@ -5,10 +5,9 @@ import { Dispatch } from "@app/redux/types";
 import { IRootState } from "@app/redux/root-reducer";
 import { inputsActions } from "./actions";
 import { InputsState } from "./reducer";
-import {IChangeValue, IfetchServerSuccess} from "@app/containers/Inputs/actions";
+import {IChangeValue, IfetchServerRequest, IfetchServerSuccess} from "@app/containers/Inputs/actions";
 import {InputNumber} from "@app/components/inputNumber";
 import {InputSlider} from "@app/components/inputSlider";
-import {checkInteger} from "@app/helper";
 
 interface IStateProps {
   alertData: InputsState["alert"];
@@ -16,12 +15,12 @@ interface IStateProps {
 }
 
 interface IDispatchProps {
-  fetchRequest: () => void;
+  fetchRequest: (payload: IfetchServerRequest) => void;
   changeValue: (payload: IChangeValue) => void;
 }
 
 export interface IHandleChange {
-  value: string;
+  value: number;
   index: number;
 }
 
@@ -36,27 +35,17 @@ class InputsComponent extends React.Component<ComponentProps, {}> {
 
   private handleChange({value, index}: IHandleChange) {
     const {changeValue, inputsData} = this.props;
-    const regex = /(\d{1,3})(\D+)?(\d{0,2})?/g;
-    const rawNumber: any = regex.exec(value);
-    let resultNumber = parseFloat(`${rawNumber[1]}.${rawNumber[3]}`);
-
-    if (rawNumber[2] && !rawNumber[3]) {
-      resultNumber = parseInt(`${rawNumber[1]}`, 10);
-    }
-
-    if (resultNumber > 100) {
-      resultNumber = 100;
-    }
 
     changeValue({
-      value: resultNumber,
+      value,
       index,
       items: inputsData,
+      // skipValue,
     });
   }
 
   public componentWillMount() {
-    this.props.fetchRequest();
+    this.props.fetchRequest({count: 3});
   }
 
   public render() {
@@ -67,12 +56,12 @@ class InputsComponent extends React.Component<ComponentProps, {}> {
           <label htmlFor="input-1">{item.Name}</label>
           <InputSlider
             index={index}
-            value={checkInteger(item.Percent)}
+            value={item.Percent.toString()}
             handleChange={this.handleChange}
           />
           <InputNumber
             index={index}
-            value={checkInteger(item.Percent)}
+            value={item.Percent.toString()}
             handleChange={this.handleChange}
           />
         </div>
